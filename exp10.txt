@@ -1,0 +1,41 @@
+/*
+  * icg.l - Lexical Analyzer for Intermediate Code Generator
+*/
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include "y.tab.h" // Includes the tokens and the YYSTYPE structure
+
+// The union structure for yylval is defined in the YACC file
+// yylval.num will hold the numeric value of the token
+%}
+
+%%
+// Rules Section
+
+// Rule 1: Match digits, convert to integer, and return the NUMBER token
+[0-9]+  {
+            yylval.num = atoi(yytext);
+            return NUMBER;
+        }
+
+// Rule 2: Match arithmetic operators and parentheses
+[+\-*/()] {
+            return yytext[0]; // Returns the operator character itself
+        }
+
+// Rule 3: Match whitespace (spaces and tabs) and ignore them
+[ \t\n]+ { /* Skip whitespace and newlines */ }
+
+// Rule 4: Match any other character and report it as invalid
+.       {
+            printf("Invalid character: %s\n", yytext);
+        }
+
+%%
+
+// User Subroutines Section
+
+int yywrap(void) {
+    return 1;
+}

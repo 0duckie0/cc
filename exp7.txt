@@ -1,0 +1,61 @@
+/*
+  * exp_postfix.l - Lexical Analyzer for Postfix Evaluation
+  *
+  * How to execute (Combined with YACC):
+  * 1. Save this as 'exp_postfix.l'
+  * 2. Save the YACC code as 'exp_postfix.y'
+  * 3. Follow the steps in the execution section below.
+*/
+%{
+#include <stdio.h>
+#include "y.tab.h" // Includes the tokens defined in the YACC grammar
+
+// Function to convert the matched string (yytext) to an integer
+int convert_to_int() {
+    return atoi(yytext);
+}
+%}
+
+%%
+// Rules Section
+
+// Rule 1: Match digits, convert to integer, and return the NUMBER token
+[0-9]+  {
+            yylval = convert_to_int();
+            return NUMBER;
+        }
+
+// Rule 2: Match operators (+, -, *, /) and return the token for the operator itself
+[+\-*/] {
+            return yytext[0]; // Return the ASCII value of the operator
+        }
+
+// Rule 3: Ignore spaces and tabs
+[ \t]   { /* Ignore spaces and tabs */ }
+
+// Rule 4: Match newline and return it, signaling the end of an expression
+\n      {
+            return '\n';
+        }
+
+// Rule 5: Match any other character as invalid
+.       {
+            printf("Invalid character: %s\n", yytext);
+        }
+
+%%
+
+// User Subroutines Section
+
+int yywrap(void) {
+    return 1;
+}
+
+
+
+
+//Save Files: Save the Lex code as exp_postfix.l and the YACC code as exp_postfix.y.
+YACC Compilation: Use yacc (or bison) to generate the C parser code (y.tab.c) and the header file (y.tab.h): yacc -d exp_postfix.y 
+Lex Compilation: Use flex to generate the C lexical analyzer code (lex.yy.c): flex exp_postfix.l
+Final Compilation: Compile all generated C files together, linking the necessary libraries: gcc lex.yy.c y.tab.c -ll -o postfix_eval
+Execution: Run the executable: ./postfix_eval

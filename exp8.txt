@@ -1,0 +1,52 @@
+/*
+  * calc.l - Lexical Analyzer for Desk Calculator
+  *
+  * This code tokenizes numbers and arithmetic operators.
+*/
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include "y.tab.h" // Includes the tokens defined in the YACC grammar
+%}
+
+%%
+// Rules Section
+
+// Rule 1: Match one or more digits, convert to integer, and return the NUMBER token
+[0-9]+  {
+            yylval = atoi(yytext);
+            return NUMBER;
+        }
+
+// Rule 2: Match arithmetic operators and return their ASCII value as the token
+[+\-*/()] {
+            return yytext[0]; // Returns the operator character itself
+        }
+
+// Rule 3: Match whitespace (spaces and tabs) and ignore them
+[ \t]+  { /* Ignore spaces and tabs */ }
+
+// Rule 4: Match newline and return it, signaling the end of an expression for evaluation
+\n      {
+            return '\n';
+        }
+
+// Rule 5: Match any other character and report it as invalid
+.       {
+            printf("Invalid character: %s\n", yytext);
+            return 0; // Returning 0 causes yylex to effectively skip the character
+        }
+
+%%
+
+// User Subroutines Section
+
+int yywrap(void) {
+    return 1;
+}
+
+Save Files: Save the Lex code as calc.l and the YACC code as calc.y.
+YACC Compilation: Use yacc (or bison) to generate the C parser code (y.tab.c) and the header file (y.tab.h):yacc -d calc.y
+Lex Compilation: Use flex to generate the C lexical analyzer code (lex.yy.c): flex calc.l
+Final Compilation: Compile all generated C files together, linking the necessary Lex library: gcc lex.yy.c y.tab.c -ll -o calc
+Execution: Run the executable:./calc

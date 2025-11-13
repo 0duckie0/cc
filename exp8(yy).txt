@@ -1,0 +1,72 @@
+/*
+  * calc.y - YACC Grammar for Desk Calculator with Error Recovery
+  *
+  * This code defines the grammar and evaluation logic for infix arithmetic expressions.
+*/
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function declaration for the lexical analyzer
+int yylex(void);
+// Function declaration for error reporting
+void yyerror(char *s);
+%}
+
+// Token Definitions (from Lex)
+%token NUMBER
+
+// Define the precedence and associativity of operators (Infix rules)
+%left '+' '-'        // + and - have lower precedence
+%left '*' '/'        // * and / have higher precedence
+
+// Define the start symbol
+%start program
+
+%%
+// Grammar Section
+
+program:
+      /* empty */
+    | program expr '\n' {
+        printf("Result: %d\n", $2); // Print result of the expression
+      }
+    | program '\n'      { /* Ignores blank lines */ }
+    | program error '\n' {
+        // Error Recovery Rule: Discard input tokens until a newline is found
+        yyerror("Syntax Error (Bad expression). Trying to recover.");
+        yyerrok; // Tells YACC that an error has been handled
+      }
+    ;
+
+expr:
+      NUMBER         { $$ = $1; } // Base case: an expression is a number
+    | expr '+' expr  { $$ = $1 + $3; }
+    | expr '-' expr  { $$ = $1 - $3; }
+    | expr '*' expr  { $$ = $1 * $3; }
+    | expr '/' expr  {
+        if ($3 == 0) {
+            yyerror("Division by zero");
+            $$ = 0; // Return 0 or some error value for the result
+        } else {
+            $$ = $1 / $3;
+        }
+      }
+    | '(' expr ')'   { $$ = $2; } // Parentheses grouping
+    ;
+
+%%
+
+// User Subroutines Section
+
+// YACC Error function
+void yyerror(char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+int main(void) {
+    printf("Desk Calculator (Enter expression then Enter. Ctrl+D to stop):\n");
+    yyparse(); // Start parsing
+    return 0;
+}
+

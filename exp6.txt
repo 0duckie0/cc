@@ -1,0 +1,58 @@
+/*
+  * Aim: Identify lines ending with ".com" from the input.
+  *
+  * How to execute in a Linux terminal:
+  * 1. Save this code as 'com_line.l'
+  * 2. Execute the Lex compiler (flex):
+  * flex com_line.l
+  * 3. Compile the generated C file:
+  * gcc lex.yy.c -ll -o com_line
+  * 4. Run the executable:
+  * ./com_line
+  * 5. Enter text (with some lines ending in .com) and press Ctrl+D to signal EOF.
+*/
+%{
+#include <stdio.h>
+
+// Global variable to track the current line number
+int line_number = 1; 
+// We start at 1 because the first line of input is line 1.
+%}
+
+%%
+
+// Rules Section
+
+// 1. Line ending with ".com"
+// The pattern .*com$ matches any character (.*) followed by the literal string "com" 
+// at the end of the line ($). The matched text includes the newline character.
+.*\.com$ {
+    printf("Line %d ends with \".com\": \"%s\"", line_number, yytext);
+    // Increment line number after processing the full line
+    line_number++;
+}
+
+// 2. Any other full line
+// The pattern .*\n matches any line that DOES NOT end in ".com" and increments the line counter.
+.*\n {
+    // We ignore the contents of this line but must track the line count.
+    line_number++; 
+}
+
+// 3. Any character that isn't part of a full line match (e.g., EOF on a partial line)
+. ;
+
+%%
+
+// User Subroutines Section
+
+int yywrap() {
+    return 1;
+}
+
+int main() {
+    printf("Enter text (press Ctrl+D to end):\n");
+    // yylex() starts the lexical analysis on standard input (stdin)
+    yylex();
+    return 0;
+}

@@ -1,0 +1,53 @@
+/*
+  * prac9.l - Lexical Analyzer for 'for' Loop Parser
+  *
+  * This code tokenizes all elements required for a basic C-like 'for' loop.
+*/
+%{
+#include <stdio.h>
+#include "prac9.tab.h" // Includes tokens defined in the YACC grammar
+%}
+
+%%
+// Rules Section
+
+// Rule 1: Keywords
+"for"   { return FOR; }
+
+// Rule 2: Punctuation and Operators
+"("     { return LPARSEN; }  // Left Parenthesis
+")"     { return RPARSEN; }  // Right Parenthesis
+"{"     { return LBRACE; }   // Left Curly Brace
+"}"     { return RBRACE; }   // Right Curly Brace
+";"     { return SEMICOLON; } // Semicolon
+"="     { return ASSIGN; }   // Assignment Operator
+"<"     { return LT; }       // Less Than Operator
+">"     { return GT; }       // Greater Than Operator
+"++"    { return PLUSPLUS; } // Increment Operator (e.g., i++)
+
+// Rule 3: Identifier (starts with a letter, followed by letters or numbers)
+[a-zA-Z][_a-zA-Z0-9]* { return IDENTIFIER; }
+
+// Rule 4: Number (one or more digits)
+[0-9]+  { return NUMBER; }
+
+// Rule 5: Whitespace
+[ \t\n]+ { /* Skip whitespace and newlines */ }
+
+// Rule 6: Invalid character
+.       {
+            printf("Invalid character: %s\n", yytext);
+            return 0; // Skip invalid character
+        }
+
+%%
+
+// User Subroutines Section
+int yywrap(void) {
+    return 1;
+}
+//Save Files: Save the Lex code as prac9.l and the YACC code as prac9.y.
+YACC Compilation (Bison): Use bison (or yacc) to generate the C parser code (prac9.tab.c) and the header file (prac9.tab.h): bison -d prac9.y
+Lex Compilation: Use flex to generate the C lexical analyzer code (lex.yy.c): flex prac9.l
+Final Compilation: Compile all generated C files together, linking the necessary Lex library: gcc prac9.tab.c lex.yy.c -ll -o output
+Execution: Run the executable:./output

@@ -1,0 +1,56 @@
+/*
+  * Aim: To count the number of words starting with 'A' or 'a'.
+  *
+  * How to execute in a Linux terminal:
+  * 1. Save this code as 'practical2.l'
+  * 2. Execute the Lex compiler (flex):
+  * flex practical2.l
+  * 3. Compile the generated C file:
+  * gcc lex.yy.c -ll -o practical2
+  * 4. Run the executable and provide the input:
+  * ./practical2
+  * 5. After typing your input, press Enter, then Ctrl+D to signal EOF.
+  *
+  * Input from the image for testing:
+  * I am a student at SIT and in CC lab
+  *
+*/
+%{
+#include <stdio.h>
+
+// Global counter for words starting with 'A' or 'a'
+int count = 0;
+%}
+
+%%
+
+// Rules Section
+
+// Rule 1: Match a word starting with 'A' or 'a', followed by one or more letters/numbers.
+// [aA] matches 'a' or 'A'.
+// [a-zA-Z0-9]+ matches one or more alphanumeric characters.
+// This is the primary counting rule.
+[aA][a-zA-Z0-9]* { count++; }
+
+// Rule 2: Ignore all other characters (e.g., spaces, newlines, other words, punctuation).
+// This ensures that only the words matching Rule 1 are counted.
+. { /* Ignore other characters */ }
+\n { /* Ignore newlines */ }
+
+%%
+
+// User Subroutines Section
+
+int main() {
+    // The yylex() function starts the lexical analysis
+    yylex();
+
+    printf("Number of words starting with 'A' or 'a': %d\n", count);
+
+    return 0;
+}
+
+// yywrap() is called when the end of the input file is reached. Returning 1 terminates the analysis.
+int yywrap() {
+    return 1;
+}

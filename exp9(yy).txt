@@ -1,0 +1,68 @@
+/*
+  * prac9.y - YACC Grammar for 'for' Loop Parser
+  *
+  * Defines the valid structure of a simple 'for' loop statement.
+*/
+%{
+#include <stdio.h>
+
+// Function declaration for the lexical analyzer
+int yylex(void);
+// Function declaration for error reporting
+void yyerror(char *s);
+%}
+
+// Token Definitions (Must match tokens returned by Lex)
+%token FOR LPARSEN RPARSEN LBRACE RBRACE SEMICOLON ASSIGN LT GT PLUSPLUS
+%token IDENTIFIER NUMBER
+
+// Define the start symbol
+%start program
+
+%%
+// Grammar Section
+
+program:
+      loop '\n' { printf("\nValid 'for' loop structure.\n"); }
+    | error '\n' { yyerror("Syntax Error"); yyerrok; } // Error recovery
+    | '\n'       { /* Ignore empty lines */ }
+    ;
+
+loop:
+      FOR LPARSEN initialization SEMICOLON condition SEMICOLON update RPARSEN LBRACE body RBRACE
+      { printf("Valid for loop structure."); }
+    ;
+
+initialization:
+      IDENTIFIER ASSIGN NUMBER // e.g., i = 0
+    | NUMBER // Empty initialization (not typical, but matches flexibility)
+    ;
+
+condition:
+      IDENTIFIER LT NUMBER     // e.g., i < 10
+    | IDENTIFIER GT NUMBER     // e.g., i > 0
+    ;
+
+update:
+      IDENTIFIER PLUSPLUS      // e.g., i++
+    ;
+
+body:
+      /* Empty for simplicity */
+    | IDENTIFIER ASSIGN IDENTIFIER PLUSPLUS  // Example statement inside the body: count = count++
+    ;
+
+%%
+
+// User Subroutines Section
+
+// YACC Error function
+void yyerror(char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+int main(void) {
+    printf("Enter a 'for' loop structure (e.g., for(i=0;i<10;i++){}):\n");
+    yyparse(); // Start parsing
+    return 0;
+}

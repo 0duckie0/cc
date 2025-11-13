@@ -1,0 +1,68 @@
+/*
+  * Aim: Conversion of decimal to hexadecimal numbers using Standard Input.
+  *
+  * How to execute in a Linux terminal:
+  * 1. Save this code as 'exp_hex_std.l'
+  * 2. Execute the Lex compiler (flex):
+  * flex exp_hex_std.l
+  * 3. Compile the generated C file:
+  * gcc lex.yy.c -ll -o exp_hex_std
+  * 4. Run the executable:
+  * ./exp_hex_std
+  * 5. Enter text and press Ctrl+D to signal EOF.
+*/
+%{
+#include <stdio.h>
+#include <stdlib.h> // For atoi()
+
+// Function prototypes
+void print_hex(const char *num_str);
+void handle_invalid(const char *text);
+%}
+
+%%
+
+// Rules Section
+
+// 1. Match valid decimal numbers
+[0-9]+  { print_hex(yytext); }
+
+// 2. Ignore spaces, tabs, and carriage returns
+[ \t\r] ;
+
+// 3. Match and print newlines to maintain formatting
+\n      { printf("\n"); }
+
+// 4. Match any other character as invalid
+.       { handle_invalid(yytext); }
+
+%%
+
+// User Subroutines Section
+
+// Function to convert and print decimal to hexadecimal
+void print_hex(const char *num_str) {
+    // Convert string (base 10) to integer
+    int num = atoi(num_str);
+    
+    // Print the conversion result directly to stdout
+    printf("Decimal: %s -> Hexadecimal: %X ", num_str, num);
+}
+
+// Function to handle and report invalid characters
+void handle_invalid(const char *text) {
+    printf("Invalid Input detected: \"%s\" ", text);
+}
+
+// Required Lex function to signal end of input
+int yywrap() {
+    return 1;
+}
+
+int main() {
+    printf("Enter decimal numbers and text (press Ctrl+D to end):\n");
+    // yylex() starts the lexical analysis on standard input (stdin)
+    yylex();
+    printf("\nAnalysis complete.\n");
+    return 0;
+}

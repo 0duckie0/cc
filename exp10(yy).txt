@@ -1,0 +1,133 @@
+/*
+  * icg.y - YACC Grammar for Intermediate Code Generation
+  *
+  * This code defines the grammar for infix arithmetic expressions and generates 3AC.
+*/
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function declaration for the lexical analyzer
+int yylex(void);
+// Function declaration for error reporting
+void yyerror(char *s);
+
+// Global temporary variable counter
+int temp_var_count = 0;
+
+// Function to get a new temporary variable name
+char *newtemp() {
+    static char temp[10];
+    sprintf(temp, "t%d", temp_var_count++);
+    return strdup(temp); // strdup copies the string to be safely returned
+}
+
+// Function to generate the Three-Address Code (3AC)
+void emit(char *result, char *operand1, char *operator, char *operand2) {
+    printf("%s = %s %s %s\n", result, operand1, operator, operand2);
+}
+
+// Function to convert an integer value to a string
+char *val_to_str(int val) {
+    static char str[10];
+    sprintf(str, "%d", val);
+    return strdup(str);
+}
+%}
+
+// Define the type for the semantic values (YYSTYPE)
+%union {
+    int num;        // For passing number values
+    char *name;     // For passing temporary variable names
+}
+
+// Token Definitions (from Lex)
+%token <num> NUMBER
+
+// Define types for grammar symbols
+%type <name> expr
+
+// Define the precedence and associativity of operators (Standard Infix)
+%left '+' '-'
+%left '*' '/'
+
+// Define the start symbol
+%start program
+
+%%
+// Grammar Section
+
+program:
+      /* empty */
+    | program expr '\n' {
+        // Final ICG assignment
+        printf("\n// Final Result:\n");
+        emit("result", $2, "=", $2); // Assign final temp var to 'result'
+        free($2);
+        temp_var_count = 0; // Reset counter for next expression
+      }
+    | program '\n'      { /* Ignores blank lines */ }
+    | program error '\n' {
+        yyerror("Syntax Error");
+        yyerrok;
+        temp_var_count = 0; // Reset counter
+      }
+    ;
+
+expr:
+      NUMBER         {
+        // When a number is encountered, generate a 3AC to assign it to a new temporary variable
+        $$ = newtemp();
+        emit($$, val_to_str($1), "=", val_to_str($1));
+        free(val_to_str($1));
+      }
+    | expr '+' expr  {
+        // When an addition is encountered, generate 3AC for the operation
+        $$ = newtemp();
+        emit($$, $1, "+", $3);
+        free($1);
+        free($3);
+      }
+    | expr '-' expr  {
+        $$ = newtemp();
+        emit($$, $1, "-", $3);
+        free($1);
+        free($3);
+      }
+    | expr '*' expr  {
+        $$ = newtemp();
+        emit($$, $1, "*", $3);
+        free($1);
+        free($3);
+      }
+    | expr '/' expr  {
+        $$ = newtemp();
+        emit($$, $1, "/", $3);
+        free($1);
+        free($3);
+      }
+    | '(' expr ')'   {
+        $$ = $2; // The result of the expression inside parentheses is the result of the group
+      }
+    ;
+
+%%
+
+// User Subroutines Section
+
+// YACC Error function
+void yyerror(char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+int main(void) {
+    printf("Intermediate Code Generator for Arithmetic Expressions\n");
+    printf("Enter expression (e.g., 5 + 2 * (10 - 4)): Press Ctrl+D to stop.\n\n");
+    yyparse(); // Start parsing
+    return 0;
+}
+//Save Files: Save the Lex code as icg.l and the YACC code as icg.y.
+YACC Compilation (Bison): Use bison (or yacc) to generate the C parser code (y.tab.c) and the header file (y.tab.h): yacc -d icg.y
+Lex Compilation: Use flex to generate the C lexical analyzer code (lex.yy.c): flex icg.l
+Final Compilation: Compile all generated C files together, linking the necessary Lex library: gcc lex.yy.c y.tab.c -ll -o icg_gen
+Execution: Run the executable:./icg_gen

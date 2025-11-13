@@ -1,0 +1,59 @@
+/*
+  * Aim: To convert lowercase letters to uppercase and vice versa.
+  *
+  * How to execute in a Linux terminal:
+  * 1. Save this code as 'expr.l'
+  * 2. Execute the Lex compiler (flex):
+  * flex expr.l
+  * 3. Compile the generated C file:
+  * gcc lex.yy.c -ll -o expr
+  * 4. Run the executable:
+  * ./expr
+  * 5. After typing your text, press Enter, then Ctrl+D to signal EOF.
+*/
+%{
+#include <stdio.h>
+#include <ctype.h> // Required for tolower() and toupper()
+%}
+
+%%
+
+// Rules Section
+
+// Rule 1: Match any lowercase letter
+[a-z] {
+    // toupper() converts the character to its uppercase equivalent
+    printf("%c", toupper(yytext[0]));
+}
+
+// Rule 2: Match any uppercase letter
+[A-Z] {
+    // tolower() converts the character to its lowercase equivalent
+    printf("%c", tolower(yytext[0]));
+}
+
+// Rule 3: Match all other characters (spaces, numbers, punctuation, etc.)
+// Prints the matched character as is.
+. {
+    printf("%c", yytext[0]);
+}
+
+// Rule 4: Match newlines and print them as is.
+\n {
+    printf("%c", yytext[0]);
+}
+
+%%
+
+// User Subroutines Section
+
+int yywrap() {
+    return 1;
+}
+
+int main(void) {
+    printf("Enter text (press Ctrl+D to end):\n");
+    // yylex() starts the lexical analysis and processing
+    yylex();
+    return 0;
+}

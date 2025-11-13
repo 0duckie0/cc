@@ -1,0 +1,84 @@
+/*
+  * How to execute in a Linux terminal:
+  * 1. Save this code as 'exp2.l'
+  * 2. Execute the Lex compiler (flex is common on Linux):
+  * flex exp2.l
+  * 3. Compile the generated C file:
+  * gcc lex.yy.c -ll
+  * 4. Run the executable and provide the C-like input:
+  * ./a.out
+  * 5. After typing your input (e.g., the code from the image), press Enter, then Ctrl+D to signal EOF.
+  *
+  * Input from the image for testing:
+  * int main() { float x,y; while(x>0) return x;}
+  *
+*/
+%{
+#include <stdio.h>
+#include <string.h>
+
+// Global counters
+int comment = 0;
+int keywords = 0;
+int identifiers = 0;
+int words = 0;
+int lines = 0;
+int spaces = 0;
+
+// List of keywords used in the rules section
+// Note: This is an incomplete list for a real compiler, but covers the words shown in the image's rule.
+// 'int', 'float', 'if', 'else', 'while', 'return'
+%}
+
+// Regular definitions (optional, but good practice)
+IDENTIFIER [a-zA-Z][_a-zA-Z0-9]*
+
+%%
+
+// Rules Section
+
+// Rule to count multiline comments (and single line '/* ... */')
+"/*"[^*/]*"*/" { comment++; }
+
+// Rule to count single-line comments (//)
+"//".* { comment++; }
+
+// Rule to count newlines and update both 'lines' and 'spaces' (as the next character could be a space/tab on a new line)
+\n { lines++; spaces += yyleng; }
+
+// Rule to count tabs and spaces (which also counts newlines from the previous rule, so we increment only 'spaces')
+[ \t] { spaces += yyleng; }
+
+// Rule to count keywords (which also count as 'words')
+"int"|"float"|"if"|"else"|"while"|"for"|"return" { keywords++; words++; }
+
+// Rule to count identifiers (which also count as 'words')
+// [a-zA-Z][a-zA-Z0-9]* is the pattern for identifier.
+// The first part checks for a word that is NOT a keyword
+{IDENTIFIER} { identifiers++; words++; }
+
+// Rule to count any other character that doesn't fit the above rules, if needed (not strictly required for the photo output)
+// . ;
+
+%%
+
+// User Subroutines Section
+
+int main() {
+    // The yylex() function starts the lexical analysis
+    yylex();
+
+    printf("comments: %d\n", comment);
+    printf("keywords: %d\n", keywords);
+    printf("identifiers: %d\n", identifiers);
+    printf("words: %d\n", words);
+    printf("lines: %d\n", lines);
+    printf("spaces: %d\n", spaces);
+
+    return 0;
+}
+
+// yywrap() is called when the end of the input file is reached. Returning 1 terminates the analysis.
+int yywrap() {
+    return 1;
+}
